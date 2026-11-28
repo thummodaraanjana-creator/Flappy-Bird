@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -71,14 +72,24 @@ public class PlayerController : MonoBehaviour
         }
         rg.linearVelocity = new Vector2(rg.linearVelocity.x, 0f);
         rg.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
+        AudioManager.Instance.Fly();
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (GameManager.Instance.GameState == GameState.GameOver) return;
-        if (collision.gameObject.CompareTag("Obstacle")) return;
+        if (!collision.gameObject.CompareTag("Obstacle")) return;
+
+        AudioManager.Instance.Hit();
+        StartCoroutine(DieSoundDelay());
         
         GameManager.Instance.GameOver();
         
+    }
+    IEnumerator DieSoundDelay()
+    {
+        yield return new WaitForSeconds(0.3f);
+        AudioManager.Instance.Die();
     }
     public void ResetPlayer()
     {

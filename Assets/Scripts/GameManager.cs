@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -22,11 +23,16 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerController playerController;
     [SerializeField] private PipeSpawner pipeSpawner;
+    [Header("Camera Shake")]
+    [SerializeField] private float shakeDuration = 0.2f;
+    [SerializeField] private float shakeAmount = 0.05f;
 
     private const string Best_Score_Key = "Best Score";
 
     private GameState gameState = GameState.Home;
     public GameState GameState => gameState;
+
+    private Camera mainCamera;
 
     private int currentScore;
     private int CurrentScore
@@ -58,6 +64,7 @@ public class GameManager : MonoBehaviour
         }
 
         Instance = this;
+        mainCamera = Camera.main;
     }
 
     private void Start()
@@ -100,7 +107,9 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
+
         gameState = GameState.GameOver;
+        StartCoroutine(ShakeCamera());
         gameOverPanel.SetActive(true);
         score.gameObject.SetActive(false);
         playButton.SetActive(true);
@@ -113,12 +122,30 @@ public class GameManager : MonoBehaviour
         gameOverScore.text = BestScore.ToString();
 
     }
+    IEnumerator ShakeCamera()
+    {
+        Vector3 originalPos = mainCamera.transform.position;
+        float timer = 0f;
+        while (timer < shakeDuration)
+        {
+            timer += Time.deltaTime;
+            float x = Random.Range(-shakeAmount,shakeAmount);
+            float y = Random.Range(-shakeAmount, shakeAmount); 
+            mainCamera.transform.position = originalPos + new Vector3(x, y, 0);
+
+            yield return null;
+        }
+        mainCamera.transform.position = originalPos;
+
+
+    }
 
     public void AddScore()
     {
         if (gameState != GameState.Playing) return;
 
         CurrentScore++;
+        AudioManager.Instance.Score();
 
     }
 
